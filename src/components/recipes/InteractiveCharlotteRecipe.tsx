@@ -167,14 +167,133 @@ const achievements = [
   '💖 Это очень милый момент',
 ]
 
-export default function InteractiveCharlotteRecipe() {
+type Props = {
+  onBack?: () => void
+}
 
-  const [currentStep, setCurrentStep] = useState(0)
-  const [completedSteps, setCompletedSteps] = useState<number[]>([])
-  const [timer, setTimer] = useState(55 * 60)
-  const [timerRunning, setTimerRunning] = useState(false)
-  const [showFinalScreen, setShowFinalScreen] = useState(false)
-  const [showAchievement, setShowAchievement] = useState(false)
+export default function InteractiveCharlotte({
+  onBack,
+}: Props) {
+
+  const [currentStep, setCurrentStep] =
+    useState(() => {
+
+      const saved =
+        localStorage.getItem(
+          'charlotte-current-step'
+        )
+
+      return saved
+        ? Number(saved)
+        : 0
+
+    })
+
+  const [completedSteps, setCompletedSteps] =
+    useState<number[]>(() => {
+
+      const saved =
+        localStorage.getItem(
+          'charlotte-completed-steps'
+        )
+
+      return saved
+        ? JSON.parse(saved)
+        : []
+
+    })
+
+  const [timer, setTimer] =
+    useState(() => {
+
+      const saved =
+        localStorage.getItem(
+          'charlotte-timer'
+        )
+
+      return saved
+        ? Number(saved)
+        : 60 * 60
+
+    })
+
+  const [timerRunning, setTimerRunning] =
+    useState(() => {
+
+      return (
+        localStorage.getItem(
+          'charlotte-timer-running'
+        ) === 'true'
+      )
+
+    })
+
+  const [showFinalScreen, setShowFinalScreen] =
+    useState(() => {
+
+      return (
+        localStorage.getItem(
+          'charlotte-final-screen'
+        ) === 'true'
+      )
+
+    })
+
+  const [showAchievement, setShowAchievement] =
+    useState(false)
+
+  // =====================================
+  // LOCAL STORAGE SAVE
+  // =====================================
+
+  useEffect(() => {
+
+    localStorage.setItem(
+      'charlotte-current-step',
+      String(currentStep)
+    )
+
+  }, [currentStep])
+
+  useEffect(() => {
+
+    localStorage.setItem(
+      'charlotte-completed-steps',
+      JSON.stringify(completedSteps)
+    )
+
+  }, [completedSteps])
+
+  useEffect(() => {
+
+    localStorage.setItem(
+      'charlotte-timer',
+      String(timer)
+    )
+
+  }, [timer])
+
+  useEffect(() => {
+
+    localStorage.setItem(
+      'charlotte-timer-running',
+      String(timerRunning)
+    )
+
+  }, [timerRunning])
+
+  useEffect(() => {
+
+    localStorage.setItem(
+      'charlotte-final-screen',
+      String(showFinalScreen)
+    )
+
+  }, [showFinalScreen])
+
+  // =====================================
+  // PROGRESS
+  // =====================================
 
   const progress = useMemo(() => {
 
@@ -185,11 +304,18 @@ export default function InteractiveCharlotteRecipe() {
 
   }, [completedSteps])
 
+  // =====================================
+  // TIMER
+  // =====================================
+
   useEffect(() => {
 
     let interval: number | undefined
 
-    if (timerRunning && timer > 0) {
+    if (
+      timerRunning &&
+      timer > 0
+    ) {
 
       interval = window.setInterval(() => {
 
@@ -201,45 +327,66 @@ export default function InteractiveCharlotteRecipe() {
 
     return () => {
 
-      if (interval) clearInterval(interval)
+      if (interval) {
+
+        clearInterval(interval)
+
+      }
 
     }
 
   }, [timerRunning, timer])
 
+  // =====================================
+  // ACHIEVEMENT
+  // =====================================
+
   useEffect(() => {
 
-  if (showAchievement) {
+    if (showAchievement) {
 
-    const timeout = setTimeout(() => {
+      const timeout = setTimeout(() => {
 
-      setShowAchievement(false)
+        setShowAchievement(false)
 
-    }, 3500)
+      }, 3500)
 
-    return () => clearTimeout(timeout)
+      return () => clearTimeout(timeout)
 
-  }
+    }
 
-}, [showAchievement])
+  }, [showAchievement])
 
-useEffect(() => {
+  // =====================================
+  // FINAL SCREEN SCROLL
+  // =====================================
 
-  if (showFinalScreen) {
+  useEffect(() => {
 
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
+    if (showFinalScreen) {
 
-  }
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      })
 
-}, [showFinalScreen])
+    }
 
-const formatTime = (seconds: number) => {
+  }, [showFinalScreen])
 
-    const minutes = Math.floor(seconds / 60)
-    const secs = seconds % 60
+  // =====================================
+  // FORMAT TIMER
+  // =====================================
+
+  const formatTime = (
+    seconds: number
+  ) => {
+
+    const minutes =
+      Math.floor(seconds / 60)
+
+    const secs =
+      seconds % 60
 
     return `${minutes}:${secs
       .toString()
@@ -249,8 +396,104 @@ const formatTime = (seconds: number) => {
 
   return (
 
-    <div className="relative min-h-screen overflow-hidden bg-[#f7f2eb] px-5 py-8">
+    <div className="relative min-h-screen  overflow-hidden bg-[#f7f2eb] px-5 py-8">
+{onBack && (
 
+  <motion.button
+    whileHover={{
+      x: -2,
+      opacity: 1,
+    }}
+    whileTap={{
+      scale: 0.98,
+    }}
+    onClick={onBack}
+    className="
+      fixed
+      left-7
+      top-7
+      z-50
+
+      group
+
+      flex
+      items-center
+      gap-3
+
+      rounded-full
+
+      border
+      border-white/50
+
+      bg-white/55
+      backdrop-blur-2xl
+
+      px-4
+      py-3
+
+      shadow-[0_8px_30px_rgba(120,90,60,0.08)]
+
+      transition-all
+      duration-300
+
+      hover:bg-white/75
+      hover:shadow-[0_12px_40px_rgba(120,90,60,0.12)]
+    "
+  >
+
+    <div
+      className="
+        flex
+        h-9
+        w-9
+        items-center
+        justify-center
+
+        rounded-full
+
+        bg-[#f1dcc6]
+
+        text-[15px]
+        text-[#8f6545]
+
+        transition-all
+        duration-300
+
+        group-hover:-translate-x-[2px]
+      "
+    >
+      ←
+    </div>
+
+    <div className="pr-1 text-left">
+
+     <div
+  className="
+    text-[10px]
+    uppercase
+    tracking-[0.28em]
+    text-[#c69a72]
+  "
+>
+  Cozy Cooking
+</div>
+
+<div
+  className="
+    text-[15px]
+    font-medium
+    leading-none
+    text-[#4b3931]
+  "
+>
+  К рецептам
+</div>
+
+    </div>
+
+  </motion.button>
+
+)}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
 
         <div className="absolute left-[-120px] top-[10%] h-[320px] w-[320px] rounded-full bg-[#f3d8bb] opacity-30 blur-3xl" />
@@ -311,28 +554,89 @@ const formatTime = (seconds: number) => {
 
         <div className="px-5 pb-20 pt-10 md:px-8">
 
-          <div className="mb-10 flex items-center justify-center gap-3">
+          <div className="mb-10 flex items-center justify-center gap-3 flex-wrap">
 
-            {steps.map((_, index) => (
+  {steps.map((step, index) => {
 
-              <motion.div
-                key={index}
-                animate={{
-                  scale:
-                    currentStep === index
-                      ? 1.2
-                      : 1,
-                }}
-                className={`h-3 w-3 rounded-full transition-all ${
-                  index <= currentStep
-                    ? 'bg-[#d09a63]'
-                    : 'bg-[#ead8c7]'
-                }`}
-              />
+    const isActive =
+      currentStep === index
 
-            ))}
+    const isCompleted =
+      index <= currentStep
 
-          </div>
+    return (
+
+      <motion.button
+        key={index}
+        whileHover={{
+          scale: 1.15,
+        }}
+        whileTap={{
+          scale: 0.92,
+        }}
+        animate={{
+          scale: isActive
+            ? 1.25
+            : 1,
+        }}
+        onClick={() => {
+
+  setCurrentStep(index)
+
+  localStorage.setItem(
+    'candle-current-step',
+    String(index)
+  )
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
+
+}}
+        className={`
+          relative
+          h-4
+          w-4
+          rounded-full
+          transition-all
+          duration-300
+          ${
+            isCompleted
+              ? 'bg-[#d09a63]'
+              : 'bg-[#ead8c7]'
+          }
+          ${
+            isActive
+              ? 'ring-4 ring-[#f3dfca]'
+              : ''
+          }
+        `}
+        title={`Шаг ${index + 1}: ${step.title}`}
+      >
+
+        {isActive && (
+
+          <motion.div
+            layoutId="activeStep"
+            className="
+              absolute
+              inset-0
+              rounded-full
+              border-2
+              border-[#b97d47]
+            "
+          />
+
+        )}
+
+      </motion.button>
+
+    )
+
+  })}
+
+</div>
 
           <AnimatePresence mode="wait">
 
